@@ -24,6 +24,6 @@ const CHANNELS = 1
 
 # Lux settings
 const NUM_CLASSES = 2
-const RNG_SEED = 42
+const RNG_SEED = 43
 
 end
