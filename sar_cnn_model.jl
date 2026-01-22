@@ -4,10 +4,11 @@ using Statistics, LinearAlgebra  # ✨ Added these imports
 include("../config/default_config.jl")
 using .DefaultConfig
 
+""" Great to use on the feature extraction logic that we'll build later 
 # -------------------------
 # 0️⃣ Gabor Kernel Initialization Helper
 # -------------------------
-"""
+
 Create a single Gabor-like kernel for orientation bias.
 Parameters:
 - size: kernel size (e.g., 7)
@@ -15,7 +16,7 @@ Parameters:
 - θ: orientation in radians (0 = horizontal, π/2 = vertical)
 - λ: wavelength (fixed, not swept)
 - γ: aspect ratio (spatial frequency)
-"""
+
 function gabor_kernel_2d(size::Int, σ::Float32, θ::Float32, λ::Float32, γ::Float32=1.0f0)
     kernel = zeros(Float32, size, size)
     center = (size + 1) / 2
@@ -45,13 +46,14 @@ function gabor_kernel_2d(size::Int, σ::Float32, θ::Float32, λ::Float32, γ::F
     
     return kernel
 end
+"""
 
 """
 Initialize a subset of conv filters with Gabor orientation bias.
 - Only affects `n_gabor` filters out of total `out_channels`
 - Uses multiple orientations (horizontal, diagonal, vertical)
 - Remaining filters: standard random initialization
-"""
+
 function initialize_gabor_biased_conv(rng, kernel_size::Tuple{Int,Int}, in_ch::Int, out_ch::Int, n_gabor::Int)
     # Standard random initialization for all filters
     weights = randn(rng, Float32, kernel_size[1], kernel_size[2], in_ch, out_ch) .* sqrt(2.0f0 / (kernel_size[1] * kernel_size[2] * in_ch))
@@ -74,7 +76,7 @@ function initialize_gabor_biased_conv(rng, kernel_size::Tuple{Int,Int}, in_ch::I
     
     return weights
 end
-
+"""
 # -------------------------
 # 1️⃣ Block Definitions
 # -------------------------
@@ -184,7 +186,7 @@ function setup_with_gabor_bias(rng, model::SAR_CNN; n_gabor_filters=4)
         classifier = ps.classifier
     )
     
-    println("✨ Gabor bias applied to Block1: $n_gabor_filters out of 16 filters")
+   # println("✨ Gabor bias applied to Block1: $n_gabor_filters out of 16 filters")
     println("   Orientations: 0°, 45°, 90°, 135° (horizontal, diagonal, vertical)")
     println("   Remaining $(16 - n_gabor_filters) filters: standard random initialization")
     println("   ALL filters remain TRAINABLE (not frozen)")
