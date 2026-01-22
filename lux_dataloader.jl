@@ -32,7 +32,7 @@ end
 # -------------------------
 # Constructor
 # -------------------------
-function DataLoader(proc_dir::String; batch_size=32, rng_seed=42, shuffle=true, augment_fn=nothing)
+function DataLoader(proc_dir::String; batch_size=32, rng_seed=RNG_SEED, shuffle=true, augment_fn=nothing)
     class0_files = readdir(joinpath(proc_dir, "class0"); join=true)
     class1_files = readdir(joinpath(proc_dir, "class1"); join=true)
 
