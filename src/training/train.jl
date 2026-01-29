@@ -7,9 +7,9 @@ using Zygote
 using LuxCUDA  # GPU support
 
 # Include project modules
-include("src/config/default_config.jl")
-include("src/dataloaders/lux_dataloader.jl")
-include("src/models/sar_cnn_model.jl")
+include("../config/default_config.jl")
+include("../dataloaders/lux_dataloader.jl")
+include("../models/sar_cnn_model.jl")
 using .DefaultConfig
 using .DefaultConfig.DeviceConfig
 
