@@ -1,0 +1,57 @@
+component: segmentation-model
+risk_tier: amber
+purpose: >
+  U-Net segmentation model in Lux.jl that reuses SAR_CNN encoder blocks
+  as the contracting path and adds a decoder with skip connections.
+
+inputs:
+  image_batch: Float32 array (256,256,1,B)
+outputs:
+  mask_pred: Float32 array (256,256,1,B) with sigmoid activation, values in [0,1]
+  intermediates: dict of encoder feature maps (for physics losses)
+
+behaviors:
+  - id: SEG-001
+    given: an input batch of shape (256,256,1,B)
+    when: passed through the model
+    then: output mask_pred has shape (256,256,1,B)
+
+  - id: SEG-002
+    given: the model architecture
+    when: inspected
+    then: encoder uses 4 conv blocks matching SAR_CNN (1->32->64->128->128)
+
+  - id: SEG-003
+    given: the model architecture
+    when: inspected
+    then: decoder has 4 upsampling blocks with skip connections from encoder
+
+  - id: SEG-004
+    given: any input
+    when: forward pass completes
+    then: all output values are in [0,1] (sigmoid applied)
+
+  - id: SEG-005
+    given: a trained classifier checkpoint (.jld2)
+    when: loading encoder weights
+    then: encoder layers are initialized from the checkpoint, decoder from scratch
+
+  - id: SEG-006
+    given: the model
+    when: total parameters counted
+    then: model fits in 8GB VRAM with batch_size=16 at 256x256
+
+  - id: SEG-007
+    given: an input batch
+    when: forward pass completes
+    then: intermediates dict contains feature maps from each encoder block
+
+invariants:
+  - output spatial resolution equals input spatial resolution
+  - model is fully differentiable (Zygote-compatible)
+  - no in-place mutations (Lux functional style)
+
+out_of_scope:
+  - multi-class output (binary IW segmentation for v1)
+  - attention mechanisms (keep simple for first version)
+  - pre-trained ImageNet weights

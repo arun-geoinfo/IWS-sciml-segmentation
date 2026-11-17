@@ -1,0 +1,58 @@
+component: data-loader
+risk_tier: green
+purpose: >
+  Load Zenodo Oceanic Phenomena images and masks, filter for IW class,
+  split into train/val/test, batch for GPU training in Lux.jl.
+
+inputs:
+  data_dir: path to zenodo_oceanic_phenomena/ (Image_Geo/, label/, Json/)
+  target_class: integer pixel value (default 12 = IW)
+  target_size: [256, 256]
+  batch_size: integer
+  split_ratios: [train, val, test] floats summing to 1.0
+
+outputs:
+  train_loader: iterator of (image_batch, mask_batch) Float32 arrays
+  val_loader: same format
+  test_loader: same format
+
+behaviors:
+  - id: DL-001
+    given: the zenodo dataset directory with Image_Geo/ and label/
+    when: the data loader is initialized
+    then: it discovers all matching image-mask pairs (same filename stem)
+
+  - id: DL-002
+    given: a 16-bit GeoTIFF image
+    when: loaded and preprocessed
+    then: output is Float32 normalized to [0,1], shape (256,256,1,B)
+
+  - id: DL-003
+    given: a uint8 PNG label mask and target_class=12
+    when: converted to binary mask
+    then: pixels with value 12 become 1.0f0, all others become 0.0f0
+
+  - id: DL-004
+    given: split_ratios [0.7, 0.15, 0.15] and N images
+    when: data is split
+    then: train has ~0.7N, val ~0.15N, test ~0.15N (no overlap)
+
+  - id: DL-005
+    given: a batch of images
+    when: loaded with CUDA available
+    then: tensors are on GPU (CuArray)
+
+  - id: DL-006
+    given: the full dataset
+    when: filtering for IW class
+    then: only images where the mask contains at least one IW pixel are included
+
+invariants:
+  - image and mask always have matching spatial dimensions
+  - no data leakage between train/val/test splits
+  - batch dimension is always last (WHCN layout for Lux)
+
+out_of_scope:
+  - data augmentation (handled in training loop)
+  - multi-class segmentation masks (binary IW only for v1)
+  - downloading the dataset

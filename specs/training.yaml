@@ -1,0 +1,57 @@
+component: training
+risk_tier: green
+purpose: >
+  Training loop for the KdV-regularized U-Net segmentation model.
+  AdamW optimizer, learning rate scheduling, mixed-precision where possible.
+
+inputs:
+  model: Lux model (from segmentation-model spec)
+  train_loader: batched (image, mask) iterator
+  val_loader: batched (image, mask) iterator
+  config: hyperparameters (epochs, lr, lambdas, patience)
+
+outputs:
+  trained_params: optimized model parameters
+  training_log: per-epoch metrics (loss, dice, IoU) for train and val
+  best_checkpoint: .jld2 file with best val Dice params
+
+behaviors:
+  - id: TR-001
+    given: model, data, and config
+    when: training starts
+    then: trains for config.epochs epochs, logging loss each epoch
+
+  - id: TR-002
+    given: training in progress
+    when: validation Dice improves
+    then: checkpoint is saved to best_checkpoint path
+
+  - id: TR-003
+    given: training in progress
+    when: validation Dice has not improved for config.patience epochs
+    then: training stops early
+
+  - id: TR-004
+    given: training completes
+    when: training log is inspected
+    then: contains per-epoch train_loss, val_loss, val_dice, val_iou
+
+  - id: TR-005
+    given: a batch of data
+    when: one training step runs
+    then: gradients are computed and parameters updated (loss decreases on avg)
+
+  - id: TR-006
+    given: physics loss lambdas are all 0.0
+    when: training runs
+    then: behavior is equivalent to standard Dice+BCE segmentation training
+
+invariants:
+  - model is in training mode during train, eval mode during validation
+  - no gradient computation during validation
+  - checkpoint is loadable and reproduces the same predictions
+
+out_of_scope:
+  - distributed/multi-GPU training
+  - mixed-precision (future optimization)
+  - hyperparameter search
