@@ -1,7 +1,15 @@
 data/raw/
 data/processed/
+data/zenodo_oceanic_phenomena/
+
+# Generated outputs and old backups
+outputs/
+backups/
 
 # Ignore generated files
 *.png
 *.jld2
 *.swp
+
+# Gate baseline (local state)
+.gate_baseline
