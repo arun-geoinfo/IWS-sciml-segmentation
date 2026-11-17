@@ -1,0 +1,56 @@
+component: evaluation
+risk_tier: green
+purpose: >
+  Evaluate the trained segmentation model on the test set.
+  Compute standard segmentation metrics and save results.
+
+inputs:
+  model: trained Lux model with loaded params
+  test_loader: batched (image, mask) iterator
+  threshold: Float32 for binarizing predictions (default 0.5)
+
+outputs:
+  metrics: Dict with Dice, IoU, Precision, Recall, F1, Accuracy
+  predictions: array of predicted masks for visualization
+  report: JSON file with all metrics and config
+
+behaviors:
+  - id: EV-001
+    given: a trained model and test data
+    when: evaluation runs
+    then: returns Dice coefficient in [0,1]
+
+  - id: EV-002
+    given: a trained model and test data
+    when: evaluation runs
+    then: returns IoU (Jaccard index) in [0,1]
+
+  - id: EV-003
+    given: predictions and targets that are identical
+    when: metrics are computed
+    then: Dice = 1.0, IoU = 1.0, Precision = 1.0, Recall = 1.0
+
+  - id: EV-004
+    given: predictions that are all zeros and targets with some positives
+    when: metrics are computed
+    then: Recall = 0.0, Dice = 0.0
+
+  - id: EV-005
+    given: evaluation completes
+    when: report is saved
+    then: JSON file contains all metrics, threshold used, model config, timestamp
+
+  - id: EV-006
+    given: a threshold parameter
+    when: predictions are binarized
+    then: values >= threshold become 1, values < threshold become 0
+
+invariants:
+  - Dice and IoU are consistent (Dice = 2*IoU / (1+IoU))
+  - metrics are computed on the test set only (no train/val leakage)
+  - evaluation is deterministic (same model + data = same metrics)
+
+out_of_scope:
+  - ROC curve generation (from existing evaluate.jl, can reuse)
+  - visual comparison plots
+  - per-image metric breakdown

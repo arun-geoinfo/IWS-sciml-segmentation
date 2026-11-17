@@ -1,0 +1,63 @@
+component: physics-losses
+risk_tier: amber
+purpose: >
+  Physics-informed loss functions that regularize the segmentation model
+  using ocean internal wave structural priors (KdV soliton properties,
+  gradient structure, symmetry).
+
+inputs:
+  pred_mask: Float32 (256,256,1,B) predicted segmentation
+  target_mask: Float32 (256,256,1,B) ground truth
+  encoder_features: intermediate feature maps from the model
+
+outputs:
+  total_loss: scalar Float32
+  loss_components: named tuple of individual loss values
+
+behaviors:
+  - id: PL-001
+    given: predicted and target masks
+    when: computing base segmentation loss
+    then: returns weighted combination of Dice loss + BCE loss
+
+  - id: PL-002
+    given: a predicted mask
+    when: computing KdV regularization loss
+    then: penalizes deviations from soliton-like spatial structure
+         (quasi-periodic, oriented wave crests with consistent spacing)
+
+  - id: PL-003
+    given: encoder feature maps
+    when: computing gradient structure loss
+    then: encourages anisotropic gradients (wave features are directional)
+
+  - id: PL-004
+    given: a predicted mask of a known soliton profile
+    when: KdV loss is computed
+    then: loss is near zero (validates the physics prior is correct)
+
+  - id: PL-005
+    given: lambda weights [lambda_dice, lambda_bce, lambda_kdv, lambda_grad]
+    when: total loss is computed
+    then: total = lambda_dice*dice + lambda_bce*bce + lambda_kdv*kdv + lambda_grad*grad
+
+  - id: PL-006
+    given: any inputs
+    when: loss is computed
+    then: all loss components are finite (no NaN or Inf)
+
+  - id: PL-007
+    given: all-zero predicted mask and all-zero target
+    when: loss is computed
+    then: Dice loss is 0.0 (no false positives, no false negatives)
+
+invariants:
+  - all losses are non-negative
+  - all losses are differentiable via Zygote
+  - KdV loss is zero for a perfect soliton profile
+  - total loss is deterministic for the same inputs
+
+out_of_scope:
+  - solving the KdV equation numerically during training
+  - full Navier-Stokes constraints
+  - losses requiring external bathymetry or stratification data

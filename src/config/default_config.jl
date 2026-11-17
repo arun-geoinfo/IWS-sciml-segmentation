@@ -1,3 +1,4 @@
+
 module DefaultConfig
 
 include("device_config.jl")
@@ -7,9 +8,9 @@ using .DeviceConfig
 # 🎛️ USER-CONFIGURABLE COMPUTE MODE
 # ========================================
 # Options: :auto, :cpu, :gpu, :hybrid
-const COMPUTE_MODE = :auto  # ⬅️ CHANGE THIS TO SELECT MODE
+const COMPUTE_MODE = :gpu  # ⬅️ CHANGE THIS TO SELECT MODE
 
-# Get device based on mode
+# Get device based on mode (uses updated DeviceConfig)
 const DEVICE, BACKEND = DeviceConfig.get_device(COMPUTE_MODE)
 
 # ========================================
@@ -22,7 +23,7 @@ const TRAIN_CSV = joinpath(PROJECT_ROOT, "data", "raw", "train.csv")
 const TEST_CSV  = joinpath(PROJECT_ROOT, "data", "raw", "test.csv")
 const PROC_TRAIN = joinpath(PROJECT_ROOT, "data", "processed", "train")
 const PROC_TEST  = joinpath(PROJECT_ROOT, "data", "processed", "test")
-
+const MODEL_SAVE_DIR = "models/"
 # ========================================
 # Image & Model Settings
 # ========================================
