@@ -1,7 +1,8 @@
 using Test
 
-# Load the module
-include(joinpath(@__DIR__, "..", "src", "dataloaders", "seg_dataloader.jl"))
+if !isdefined(Main, :SegDataLoader)
+    include(joinpath(@__DIR__, "..", "src", "dataloaders", "seg_dataloader.jl"))
+end
 using .SegDataLoader
 
 const DATA_DIR = joinpath(@__DIR__, "..", "data", "zenodo_oceanic_phenomena")

@@ -1,6 +1,8 @@
 using Test
 
-include(joinpath(@__DIR__, "..", "src", "models", "seg_unet_model.jl"))
+if !isdefined(Main, :SegUNet)
+    include(joinpath(@__DIR__, "..", "src", "models", "seg_unet_model.jl"))
+end
 using .SegUNet
 using Random, Lux
 

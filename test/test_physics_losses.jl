@@ -1,6 +1,8 @@
 using Test
 
-include(joinpath(@__DIR__, "..", "src", "training", "physics_losses.jl"))
+if !isdefined(Main, :PhysicsLosses)
+    include(joinpath(@__DIR__, "..", "src", "training", "physics_losses.jl"))
+end
 using .PhysicsLosses
 using Statistics
 
